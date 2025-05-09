@@ -25,11 +25,11 @@ const timeMap: Record<TimeType, string> = {
   all: "all"
 }
 
-export async function fetchPosts(
-  subreddit: string,
-  sort: SortType,
-  time?: TimeType
-): Promise<Post[]> {
+export async function fetchPosts(formData: FormData) {
+  const subreddit = formData.get("subreddit") as string
+  const sort = formData.get("sort") as string
+  const time = formData.get("time") as TimeType
+  
   let url = ""
   if (sort === "top") {
     const mappedTime = timeMap[time ?? "all"]

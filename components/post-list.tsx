@@ -1,15 +1,14 @@
-"use client"
-
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Post } from "@/app/actions"
 
 interface PostListProps {
   posts: Post[]
+  subreddit?: string
   isLoading?: boolean
 }
 
-export function PostList({ posts = [], isLoading = false }: PostListProps) {
+export function PostList({ posts = [], subreddit, isLoading = false }: PostListProps) {
   if (isLoading) {
     return (
       <div className="space-y-4 mt-8">
@@ -34,6 +33,11 @@ export function PostList({ posts = [], isLoading = false }: PostListProps) {
 
   return (
     <div className="space-y-4 mt-8">
+      {subreddit && (
+        <div className="text-lg font-semibold mb-2 text-center">
+          r/{subreddit}
+        </div>
+      )}
       {posts.map((post) => (
         <Card key={post.id}>
           <CardContent className="p-4">

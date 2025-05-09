@@ -1,73 +1,55 @@
 "use client"
 
 import { useState } from "react"
+import { fetchPosts, Post } from "@/app/actions"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { fetchPosts, Post } from "@/app/actions"
-
-type SortType = "new" | "hot" | "rising" | "top"
-type TimeType = "now" | "today" | "week" | "month" | "year" | "all"
 
 interface SubredditFormProps {
-  onPostsChange: (posts: Post[]) => void
-  onLoadingChange: (isLoading: boolean) => void
+  onPostsChange: (posts: Post[], subreddit: string, sort: string, time?: string) => void
 }
 
-export function SubredditForm({ onPostsChange, onLoadingChange }: SubredditFormProps) {
+export function SubredditForm({ onPostsChange }: SubredditFormProps) {
   const [subreddit, setSubreddit] = useState("")
-  const [sort, setSort] = useState<SortType>("hot")
-  const [time, setTime] = useState<TimeType>("all")
+  const [sort, setSort] = useState("hot")
+  const [time, setTime] = useState("all")
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    onLoadingChange(true)
-    try {
-      const posts = await fetchPosts(subreddit, sort, sort === "top" ? time : undefined)
-      onPostsChange(posts)
-    } catch (error) {
-      console.error("Failed to fetch posts:", error)
-      onPostsChange([])
-    } finally {
-      onLoadingChange(false)
-    }
+  async function handleSubmit(formData: FormData) {
+    const posts = await fetchPosts(formData)
+    onPostsChange(posts, subreddit, sort, sort === "top" ? time : undefined)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form action={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="subreddit">Subreddit Name</Label>
         <Input
           id="subreddit"
+          name="subreddit"
           placeholder="e.g. AskReddit"
           value={subreddit}
-          onChange={(e) => setSubreddit(e.target.value)}
+          onChange={e => setSubreddit(e.target.value)}
           required
         />
       </div>
 
       <div className="space-y-2">
         <Label>Sort By</Label>
-        <RadioGroup value={sort} onValueChange={(value) => setSort(value as SortType)}>
+        <RadioGroup
+          name="sort"
+          value={sort}
+          onValueChange={setSort}
+        >
           <div className="flex flex-wrap gap-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="new" id="new" />
-              <Label htmlFor="new">New</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="hot" id="hot" />
-              <Label htmlFor="hot">Hot</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="rising" id="rising" />
-              <Label htmlFor="rising">Rising</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="top" id="top" />
-              <Label htmlFor="top">Top</Label>
-            </div>
+            {["new", "hot", "rising", "top"].map((option) => (
+              <div key={option} className="flex items-center space-x-2">
+                <RadioGroupItem value={option} id={option} />
+                <Label htmlFor={option}>{option.charAt(0).toUpperCase() + option.slice(1)}</Label>
+              </div>
+            ))}
           </div>
         </RadioGroup>
       </div>
@@ -75,17 +57,16 @@ export function SubredditForm({ onPostsChange, onLoadingChange }: SubredditFormP
       {sort === "top" && (
         <div className="space-y-2">
           <Label htmlFor="time">Time Period</Label>
-          <Select value={time} onValueChange={(value) => setTime(value as TimeType)}>
+          <Select name="time" value={time} onValueChange={setTime}>
             <SelectTrigger id="time">
               <SelectValue placeholder="Select time period" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="now">Now</SelectItem>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="year">This Year</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
+              {["now", "today", "week", "month", "year", "all"].map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option.charAt(0).toUpperCase() + option.slice(1)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -93,5 +74,6 @@ export function SubredditForm({ onPostsChange, onLoadingChange }: SubredditFormP
 
       <Button type="submit" className="w-full">Search Posts</Button>
     </form>
+
   )
 } 
