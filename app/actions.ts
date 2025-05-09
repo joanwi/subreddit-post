@@ -9,8 +9,12 @@ export type Post = {
   url: string
 }
 
-const API_KEY = "e5a399793fmshb936ab19a44dcfap1d345bjsncf0eb0544d9e"
-const API_HOST = "reddit34.p.rapidapi.com"
+const API_KEY = process.env.RAPIDAPI_KEY
+const API_HOST = process.env.RAPIDAPI_HOST
+
+if (!API_KEY || !API_HOST) {
+  throw new Error("Missing required environment variables")
+}
 
 const timeMap: Record<TimeType, string> = {
   now: "hour",
@@ -36,8 +40,8 @@ export async function fetchPosts(
   const res = await fetch(url, {
     method: "GET",
     headers: {
-      "x-rapidapi-key": API_KEY,
-      "x-rapidapi-host": API_HOST,
+      "x-rapidapi-key": API_KEY as string,
+      "x-rapidapi-host": API_HOST as string,
     },
     cache: "no-store"
   })
